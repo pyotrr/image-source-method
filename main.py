@@ -33,13 +33,37 @@ class Surface:
         self.c = (self.a * point_a.x) + (self.b * point_a.y)
 
 
+def get_distance_between_points(point_a, point_b):
+    import math as m
+
+    x2 = (point_b.x - point_a.x) ** 2
+    y2 = (point_b.y - point_a.y) ** 2
+
+    if hasattr(point_a, 'z') and hasattr(point_b, 'z'):
+        z2 = (point_b.z - point_a.z) ** 2
+        return m.sqrt(x2 + y2 + z2)
+
+    return m.sqrt(x2 + y2)
+
+
 class Source:
-    def __init__(self, coords, order, alphas=None):
-        if alphas is None:
-            alphas = []
+    def __init__(self, coords, order, receiver, alphas=None):
+        from functools import reduce
         self.coords = coords
         self.order = order
+        if alphas is not None:
+            alphas_inverse = map(lambda a: 1 - a, alphas)
+            self.alpha_factor = reduce(lambda a1, a2: a1 * a2, alphas_inverse)
+        else:
+            self.alpha_factor = 1
+        if alphas is None:
+            alphas = []
         self.alphas = alphas
+        self.distance_from_receiver = get_distance_between_points(receiver, coords)
+
+
+def flatten(collection):
+    return [item for sublist in collection for item in sublist]
 
 
 def reflect_point_over_surface(point, surface):
@@ -89,12 +113,18 @@ def get_visible_surfaces(source, obstacles):
 
 
 def image_source_mtd():
+    import math as m
+    import matplotlib.pyplot as plt
 
-    source = Source(XYZ(42.5, 7.5, 4.5), 0)
     receiver = XYZ(2.5, 47.5, 4)
+
+    source = Source(XYZ(42.5, 7.5, 4.5), 0, receiver)
+    source_power_lvl = 120
+    source_power = 10 ** (source_power_lvl / 10) * (10 ** (-12))
 
     # max number of reflections
     N = 2
+    m_alfa = 0.002
 
     obstacles = [
         Obstacle(6, [
@@ -126,12 +156,29 @@ def image_source_mtd():
             visible_surfaces = get_visible_surfaces(s, obstacles)
             for surf, alpha in visible_surfaces:
                 image_source_position = reflect_point_over_surface(s.coords, surf)
-                image_source = Source(image_source_position, source_order, s.alphas + [alpha])
+                image_source = Source(image_source_position, source_order, receiver, s.alphas + [alpha])
                 image_sources.append(image_source)
         # extend sources by appending a list of image sources with higher order
         sources = sources + [image_sources]
 
-    print(sources)
+    flat_sources = flatten(sources)
+
+    intensity_ref = [source.alpha_factor
+                     * m.exp(-m_alfa * source.distance_from_receiver)
+                     * source_power / (4 * m.pi * source.distance_from_receiver ** 2)
+                     for source in flat_sources]
+    R = 429
+    t = [source.distance_from_receiver / 340.3 for source in flat_sources]
+    pressure_ref = [(i * 2 * R) ** (1 / 2) for i in intensity_ref]
+    pressure_ref = [pr / (2 * 10 ** (-5)) for pr in pressure_ref]
+    spl_ref = [20 * m.log10(pr) for pr in pressure_ref]
+
+    # plot the results
+    plt.stem(t, spl_ref)
+    plt.xlabel("Czas [s]")
+    plt.ylabel("Poziom ciśnienia akustycznego [dB]")
+    plt.show()
+
 
 
 if __name__ == '__main__':
