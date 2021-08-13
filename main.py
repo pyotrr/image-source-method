@@ -124,7 +124,7 @@ def image_source_mtd():
 
     # max number of reflections
     N = 2
-    m_alfa = 0.002
+    m_alfa = 0.005066
 
     obstacles = [
         Obstacle(6, [
