@@ -111,6 +111,23 @@ def get_visible_surfaces(source, obstacles):
         visible_surfaces.append((distance_from_center[1][1], obs.alpha))
     return visible_surfaces
 
+def write_to_csv(data, filename, attribute_names):
+    import csv
+    try:
+        with open(filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            for item in data:
+                attributes = [getattr(item, attrName) if attrName != 'coords'
+                              else None
+                              for attrName in attribute_names]
+                attributes = list(filter(lambda x: x is not None, attributes))
+                coords = []
+                if 'coords' in attribute_names:
+                    coords = [getattr(item.coords, coord) for coord in ['x', 'y', 'z']]
+                writer.writerow(attributes + coords)
+    except BaseException as e:
+        print('BaseException:', filename)
+
 
 def image_source_mtd():
     import math as m
@@ -162,6 +179,7 @@ def image_source_mtd():
         sources = sources + [image_sources]
 
     flat_sources = flatten(sources)
+    write_to_csv(flat_sources, 'sources.csv', ['order', 'alpha_factor', 'distance_from_receiver', 'coords'])
 
     intensity_ref = [source.alpha_factor
                      * m.exp(-m_alfa * source.distance_from_receiver)
