@@ -1,4 +1,4 @@
-order,alpha_factor,distance_from_receiver,coords,x,y,z,dB
+order,alpha_factor,distance_from_receiver,x,y,z,dB
 0,1,56.570752160458326,42.5,7.5,4.5,76.0257018662259
 1,0.65,60.21004899516359,42.5,92.5,4.5,73.53322540880822
 1,0.65,56.570752160458326,42.5,7.5,4.5,74.15483543265447
