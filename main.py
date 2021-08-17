@@ -112,12 +112,12 @@ def get_visible_surfaces(source, obstacles):
     return visible_surfaces
 
 
-def write_to_csv(data, filename, attribute_names, additional_data):
+def write_to_csv(data, filename, attribute_names, db, t):
     import csv
     try:
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(attribute_names + ['x', 'y', 'z', 'dB'])
+            writer.writerow(['order', 'alpha_factor', 'distance_from_receiver', 'x', 'y', 'z', 'dB', 't'])
             for i, item in enumerate(data):
                 attributes = [getattr(item, attrName) if attrName != 'coords'
                               else None
@@ -126,9 +126,9 @@ def write_to_csv(data, filename, attribute_names, additional_data):
                 coords = []
                 if 'coords' in attribute_names:
                     coords = [getattr(item.coords, coord) for coord in ['x', 'y', 'z']]
-                add_data = additional_data[i]
-                print(attributes + coords + [add_data])
-                writer.writerow(attributes + coords + [add_data])
+                db_val = db[i]
+                t_val = t[i]
+                writer.writerow(attributes + coords + [db_val, t_val])
     except BaseException as e:
         print('BaseException:', filename)
 
@@ -201,7 +201,7 @@ def image_source_mtd():
     plt.show()
 
     write_to_csv(flat_sources, 'sources.csv',
-                 ['order', 'alpha_factor', 'distance_from_receiver', 'coords'], additional_data=spl_ref)
+                 ['order', 'alpha_factor', 'distance_from_receiver', 'coords'], spl_ref, t)
 
 
 if __name__ == '__main__':
