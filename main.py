@@ -111,12 +111,13 @@ def get_visible_surfaces(source, obstacles):
         visible_surfaces.append((distance_from_center[1][1], obs.alpha))
     return visible_surfaces
 
-def write_to_csv(data, filename, attribute_names):
+
+def write_to_csv(data, filename, attribute_names, additional_data=None):
     import csv
     try:
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f)
-            for item in data:
+            for i, item in enumerate(data):
                 attributes = [getattr(item, attrName) if attrName != 'coords'
                               else None
                               for attrName in attribute_names]
@@ -124,7 +125,10 @@ def write_to_csv(data, filename, attribute_names):
                 coords = []
                 if 'coords' in attribute_names:
                     coords = [getattr(item.coords, coord) for coord in ['x', 'y', 'z']]
-                writer.writerow(attributes + coords)
+                if additional_data is not None:
+                    add_data = additional_data[i]
+                print(attributes + coords + [add_data])
+                writer.writerow(attributes + coords + [add_data])
     except BaseException as e:
         print('BaseException:', filename)
 
@@ -179,7 +183,6 @@ def image_source_mtd():
         sources = sources + [image_sources]
 
     flat_sources = flatten(sources)
-    write_to_csv(flat_sources, 'sources.csv', ['order', 'alpha_factor', 'distance_from_receiver', 'coords'])
 
     intensity_ref = [source.alpha_factor
                      * m.exp(-m_alfa * source.distance_from_receiver)
@@ -197,6 +200,8 @@ def image_source_mtd():
     plt.ylabel("Poziom ciśnienia akustycznego [dB]")
     plt.show()
 
+    write_to_csv(flat_sources, 'sources.csv',
+                 ['order', 'alpha_factor', 'distance_from_receiver', 'coords'], additional_data=spl_ref)
 
 
 if __name__ == '__main__':
