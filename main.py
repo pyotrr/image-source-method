@@ -112,11 +112,12 @@ def get_visible_surfaces(source, obstacles):
     return visible_surfaces
 
 
-def write_to_csv(data, filename, attribute_names, additional_data=None):
+def write_to_csv(data, filename, attribute_names, additional_data):
     import csv
     try:
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f)
+            writer.writerow(attribute_names + ['x', 'y', 'z', 'dB'])
             for i, item in enumerate(data):
                 attributes = [getattr(item, attrName) if attrName != 'coords'
                               else None
@@ -125,8 +126,7 @@ def write_to_csv(data, filename, attribute_names, additional_data=None):
                 coords = []
                 if 'coords' in attribute_names:
                     coords = [getattr(item.coords, coord) for coord in ['x', 'y', 'z']]
-                if additional_data is not None:
-                    add_data = additional_data[i]
+                add_data = additional_data[i]
                 print(attributes + coords + [add_data])
                 writer.writerow(attributes + coords + [add_data])
     except BaseException as e:
@@ -153,16 +153,16 @@ def image_source_mtd():
             Surface(XY(27.5, 57.5), XY(42.5, 57.5)),
             Surface(XY(27.5, 50), XY(27.5, 57.5)),
             Surface(XY(42.5, 57.5), XY(42.5, 50)),
-        ], 0.2),
+        ], 0.35),
         Obstacle(8, [
             Surface(XY(5, 22.5), XY(12.5, 15)),
             Surface(XY(12.5, 15), XY(22.5, 25)),
             Surface(XY(22.5, 25), XY(15, 37.5)),
             Surface(XY(15, 37.5), XY(5, 22.5)),
-        ], 0.3),
+        ], 0.35),
         Obstacle(7, [
             Surface(XY(67.5, 5), XY(75, 45)),
-        ], 0.1),
+        ], 0.8),
     ]
 
     # list of lists of sources grouped by order
